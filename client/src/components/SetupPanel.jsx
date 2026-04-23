@@ -59,21 +59,6 @@ export default function SetupPanel({ gameState, dispatch }) {
           <span className="section-sub"> — tap in order ({scratchedHorses.length}/4)</span>
         </h3>
 
-        {scratchedHorses.length > 0 && (
-          <div className="scratch-order">
-            {scratchedHorses.map((h, i) => (
-              <div key={h} className="scratch-order-item">
-                <span className="scratch-pos">{i + 1}.</span>
-                <HorseToken number={h} size={36} />
-                <span className="scratch-penalty-label" style={{ color: HORSE_COLORS[h] }}>
-                  Horse {h} — penalty {i + 1}× = ${penaltyFor(i, baseBet).toFixed(2)}
-                </span>
-                <button className="remove-scratch-btn" onClick={() => toggleScratch(h)}>✕</button>
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className="horse-grid">
           {HORSES.map(h => {
             const scratchIdx = scratchedHorses.indexOf(h);

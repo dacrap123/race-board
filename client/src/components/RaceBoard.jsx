@@ -175,47 +175,48 @@ export default function RaceBoard({ gameState, sessionCode, dispatch }) {
         </div>
       )}
 
-      {/* ── Setup state ── */}
+      {/* ── Setup status bar ── */}
       {isSetup && (
-        <div className="board-setup-overlay">
-          <p>Waiting for setup…</p>
-          <p className="board-setup-sub">Use the controller to configure and start the race.</p>
+        <div className="board-setup-bar">
+          {scratchedHorses.length === 0
+            ? 'Waiting for setup — scratch 4 horses on the controller to begin'
+            : scratchedHorses.length < 4
+              ? `${scratchedHorses.length} of 4 horses scratched — scratch ${4 - scratchedHorses.length} more to start`
+              : '4 horses scratched — ready to start'}
         </div>
       )}
 
-      {/* ── Track ── */}
-      {!isSetup && (
-        <div className="track-wrap">
+      {/* ── Track (always visible, even during setup) ── */}
+      <div className="track-wrap">
 
-          <div className="zone-bar">
-            <div className="zb-spacer" />
-            <div className="zb-fixed-labels">
-              <div className="zb-section zb-scratch">← SCRATCHED<br /><span>4 · 3 · 2 · 1</span></div>
-              <div className="zb-section zb-start">START<br /><span>▶</span></div>
-            </div>
-            <div className="zb-track-spacer" />
-            <div className="zb-section zb-finish">🏁</div>
+        <div className="zone-bar">
+          <div className="zb-spacer" />
+          <div className="zb-fixed-labels">
+            <div className="zb-section zb-scratch">← SCRATCHED<br /><span>4 · 3 · 2 · 1</span></div>
+            <div className="zb-section zb-start">START<br /><span>▶</span></div>
           </div>
-
-          <div className="rows-wrap">
-            {HORSES.map(horse => {
-              const si = scratchedHorses.indexOf(horse);
-              return (
-                <TrackRow
-                  key={horse}
-                  horse={horse}
-                  position={positions[horse] || 0}
-                  isScratched={si !== -1}
-                  scratchIndex={si}
-                  baseBet={baseBet}
-                  isWinner={winner === horse}
-                />
-              );
-            })}
-          </div>
-
+          <div className="zb-track-spacer" />
+          <div className="zb-section zb-finish">🏁</div>
         </div>
-      )}
+
+        <div className="rows-wrap">
+          {HORSES.map(horse => {
+            const si = scratchedHorses.indexOf(horse);
+            return (
+              <TrackRow
+                key={horse}
+                horse={horse}
+                position={positions[horse] || 0}
+                isScratched={si !== -1}
+                scratchIndex={si}
+                baseBet={baseBet}
+                isWinner={winner === horse}
+              />
+            );
+          })}
+        </div>
+
+      </div>
 
       {/* ── Footer ── */}
       {!isSetup && scratchedHorses.length > 0 && (
