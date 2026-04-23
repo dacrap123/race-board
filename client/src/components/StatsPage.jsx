@@ -56,6 +56,7 @@ export default function StatsPage({ onBack }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
     fetch('/api/stats')
@@ -63,6 +64,17 @@ export default function StatsPage({ onBack }) {
       .then(data => { setStats(data); setLoading(false); })
       .catch(() => { setError('Could not load stats. Is the server running?'); setLoading(false); });
   }, []);
+
+  function deleteGame(id) {
+    setDeleting(id);
+    fetch(`/api/stats/${id}`, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(() => {
+        setStats(prev => ({ ...prev, games: prev.games.filter(g => g.id !== id) }));
+      })
+      .catch(() => alert('Failed to delete game.'))
+      .finally(() => setDeleting(null));
+  }
 
   if (loading) return (
     <div className="stats-loading">
@@ -301,6 +313,7 @@ export default function StatsPage({ onBack }) {
         {/* ── Recent games ── */}
         <SectionHeader>Recent Games</SectionHeader>
         <div className="chart-card">
+          <p className="chart-note">Click the delete button on any game to remove it from stats (e.g. test games).</p>
           <div className="horse-table-wrap">
             <table className="horse-table">
               <thead>
@@ -311,6 +324,7 @@ export default function StatsPage({ onBack }) {
                   <th>Rolls</th>
                   <th>Duration</th>
                   <th>Scratched</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -328,6 +342,16 @@ export default function StatsPage({ onBack }) {
                       {g.scratchedHorses.map(h => (
                         <span key={h} className="scratch-pip" style={{ background: HORSE_COLORS[h] }}>{h}</span>
                       ))}
+                    </td>
+                    <td>
+                      <button
+                        className="delete-game-btn"
+                        disabled={deleting === g.id}
+                        onClick={() => deleteGame(g.id)}
+                        title="Remove this game from stats"
+                      >
+                        {deleting === g.id ? '…' : '✕'}
+                      </button>
                     </td>
                   </tr>
                 ))}

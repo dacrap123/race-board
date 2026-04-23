@@ -40,6 +40,16 @@ function saveGameRecord(state) {
 
 app.get('/api/stats', (_req, res) => res.json(loadStats()));
 
+app.delete('/api/stats/:id', (req, res) => {
+  const id  = parseInt(req.params.id);
+  const stats = loadStats();
+  const before = stats.games.length;
+  stats.games = stats.games.filter(g => g.id !== id);
+  if (stats.games.length === before) return res.status(404).json({ error: 'Game not found' });
+  fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+  res.json({ ok: true });
+});
+
 // ── Game logic ───────────────────────────────────────────────────────────────
 
 const TRACK_LENGTHS = {

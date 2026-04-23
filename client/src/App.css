@@ -1192,6 +1192,26 @@ button { cursor: pointer; font-family: inherit; }
 
 .td-dim { color: var(--text-dim); }
 
+.delete-game-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.delete-game-btn:hover:not(:disabled) {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.4);
+  color: var(--red);
+}
+.delete-game-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .scratch-pip {
   display: inline-flex;
   align-items: center;
