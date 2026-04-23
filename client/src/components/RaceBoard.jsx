@@ -86,8 +86,7 @@ export default function RaceBoard({ gameState, sessionCode, dispatch }) {
     prevRef.current = gameState;
   }, [gameState, soundEnabled]);
 
-  // Only OPEN the modal when the race finishes — never auto-close it.
-  // We snapshot winner/pot so the modal survives a RESET broadcast.
+  // Open the modal when the race finishes — snapshot data so it survives broadcasts.
   useEffect(() => {
     if (phase === 'finished' && winner) {
       const snap = { winner, pot, payout: pot / 4, quarters: Math.round((pot / 4) / 0.25) };
@@ -96,6 +95,14 @@ export default function RaceBoard({ gameState, sessionCode, dispatch }) {
       fireConfetti(HORSE_COLORS[winner]);
     }
   }, [phase, winner]);
+
+  // Close the modal when a RESET is received (phase returns to 'setup').
+  useEffect(() => {
+    if (phase === 'setup') {
+      setShowWinnerModal(false);
+      setWinnerSnap(null);
+    }
+  }, [phase]);
 
   const payout     = pot / 4;
   const quarters   = Math.round(payout / 0.25);
