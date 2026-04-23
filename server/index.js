@@ -2,15 +2,46 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
+app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 const sessions = {};
+const DATA_DIR   = path.join(__dirname, 'data');
+const STATS_FILE = path.join(DATA_DIR, 'stats.json');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 
-// Track length per horse — mirrors the physical board's pyramid shape.
-// Horse 7 is rolled most often (6/36) so it needs the most steps to balance.
+// ── Stats persistence ────────────────────────────────────────────────────────
+
+function loadStats() {
+  try { return JSON.parse(fs.readFileSync(STATS_FILE, 'utf8')); }
+  catch { return { games: [] }; }
+}
+
+function saveGameRecord(state) {
+  const stats = loadStats();
+  stats.games.push({
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    winner: state.winner,
+    scratchedHorses: [...state.scratchedHorses],
+    pot: state.pot,
+    baseBet: state.baseBet,
+    rollCount: state.rollCount || 0,
+    durationSeconds: state.raceStartTime
+      ? Math.round((Date.now() - state.raceStartTime) / 1000)
+      : null,
+  });
+  fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+}
+
+app.get('/api/stats', (_req, res) => res.json(loadStats()));
+
+// ── Game logic ───────────────────────────────────────────────────────────────
+
 const TRACK_LENGTHS = {
   2: 3,  3: 5,  4: 7,  5: 9,  6: 11, 7: 13,
   8: 11, 9: 9, 10: 7, 11: 5, 12: 3,
@@ -20,13 +51,15 @@ function createGameState() {
   const positions = {};
   for (let i = 2; i <= 12; i++) positions[i] = 0;
   return {
-    phase: 'setup',      // 'setup' | 'racing' | 'finished'
+    phase: 'setup',
     baseBet: 1,
-    scratchedHorses: [], // ordered: index 0 = 1st scratched (1x), etc.
+    scratchedHorses: [],
     positions,
     pot: 0,
     winner: null,
-    history: [],         // undo stack (snapshots without history field)
+    rollCount: 0,
+    raceStartTime: null,
+    history: [],
   };
 }
 
@@ -86,6 +119,7 @@ io.on('connection', (socket) => {
     else if (type === 'START_RACE') {
       if (state.phase === 'setup' && state.scratchedHorses.length === 4) {
         state.phase = 'racing';
+        state.raceStartTime = Date.now();
         changed = true;
       }
     }
@@ -96,18 +130,18 @@ io.on('connection', (socket) => {
         if (h < 2 || h > 12) return;
 
         pushHistory(state);
+        state.rollCount = (state.rollCount || 0) + 1;
 
         const scratchIdx = state.scratchedHorses.indexOf(h);
         if (scratchIdx !== -1) {
-          // Scratched horse: add penalty to pot
           const penalty = (scratchIdx + 1) * state.baseBet;
           state.pot = Math.round((state.pot + penalty) * 100) / 100;
         } else {
-          // Active horse: advance one step
           state.positions[h] = (state.positions[h] || 0) + 1;
           if (state.positions[h] >= TRACK_LENGTHS[h]) {
             state.winner = h;
             state.phase = 'finished';
+            saveGameRecord(state);
           }
         }
         changed = true;
@@ -117,7 +151,6 @@ io.on('connection', (socket) => {
     else if (type === 'UNDO') {
       if (state.history.length > 0) {
         const prev = JSON.parse(state.history.pop());
-        // Restore snapshot fields; history stays as-is (prev has no history key)
         Object.assign(state, prev);
         changed = true;
       }

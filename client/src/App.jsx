@@ -4,9 +4,10 @@ import LandingPage from './components/LandingPage';
 import RaceBoard from './components/RaceBoard';
 import SetupPanel from './components/SetupPanel';
 import ControllerPanel from './components/ControllerPanel';
+import StatsPage from './components/StatsPage';
 
 export default function App() {
-  const [mode, setMode] = useState(null);           // 'display' | 'controller' | 'single'
+  const [mode, setMode] = useState(null);           // 'display' | 'controller' | 'single' | 'stats'
   const [sessionCode, setSessionCode] = useState('');
   const [gameState, setGameState] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -47,14 +48,17 @@ export default function App() {
     };
   }, [mode, sessionCode]);
 
+  // Stats page
+  if (mode === 'stats') {
+    return <StatsPage onBack={() => setMode(null)} />;
+  }
+
   // Landing
   if (!mode || !sessionCode) {
     return (
       <LandingPage
-        onJoin={(m, code) => {
-          setMode(m);
-          setSessionCode(code);
-        }}
+        onJoin={(m, code) => { setMode(m); setSessionCode(code); }}
+        onStats={() => setMode('stats')}
       />
     );
   }
@@ -99,14 +103,14 @@ export default function App() {
 
   // Display mode
   if (mode === 'display') {
-    return <RaceBoard gameState={gameState} sessionCode={sessionCode} />;
+    return <RaceBoard gameState={gameState} sessionCode={sessionCode} dispatch={dispatch} />;
   }
 
   // Single device: stacked board + controls
   return (
     <div className="single-device-layout">
       <div className="single-board-pane">
-        <RaceBoard gameState={gameState} sessionCode={sessionCode} />
+        <RaceBoard gameState={gameState} sessionCode={sessionCode} dispatch={dispatch} />
       </div>
       <div className="single-ctrl-pane">
         {gameState.phase === 'setup'

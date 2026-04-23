@@ -4,3 +4,4 @@ dist/
 *.log
 out.txt
 err.txt
+server/data/stats.json

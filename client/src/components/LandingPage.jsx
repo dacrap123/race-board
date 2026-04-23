@@ -10,7 +10,7 @@ function generateCode() {
   return c;
 }
 
-export default function LandingPage({ onJoin }) {
+export default function LandingPage({ onJoin, onStats }) {
   const [step, setStep] = useState('pick');   // 'pick' | 'display' | 'controller' | 'single'
   const [sessionCode] = useState(generateCode);
   const [inputCode, setInputCode] = useState('');
@@ -45,18 +45,31 @@ export default function LandingPage({ onJoin }) {
           <div className="landing-modes">
             <button className="mode-btn" onClick={() => handlePick('single')}>
               <span className="mode-icon">📱</span>
-              <span className="mode-label">Single Device</span>
-              <span className="mode-desc">Board + controller on one screen</span>
+              <span>
+                <span className="mode-label">Single Device</span>
+                <span className="mode-desc">Board + controller on one screen</span>
+              </span>
             </button>
             <button className="mode-btn" onClick={() => setStep('display')}>
               <span className="mode-icon">📺</span>
-              <span className="mode-label">Display Mode</span>
-              <span className="mode-desc">Projector / large screen</span>
+              <span>
+                <span className="mode-label">Display Mode</span>
+                <span className="mode-desc">Projector / large screen</span>
+              </span>
             </button>
             <button className="mode-btn" onClick={() => setStep('controller')}>
               <span className="mode-icon">🎮</span>
-              <span className="mode-label">Controller Mode</span>
-              <span className="mode-desc">Phone / tablet remote</span>
+              <span>
+                <span className="mode-label">Controller Mode</span>
+                <span className="mode-desc">Phone / tablet remote</span>
+              </span>
+            </button>
+            <button className="mode-btn mode-btn-stats" onClick={onStats}>
+              <span className="mode-icon">📊</span>
+              <span>
+                <span className="mode-label">Statistics</span>
+                <span className="mode-desc">Win rates, records &amp; history</span>
+              </span>
             </button>
           </div>
         )}
