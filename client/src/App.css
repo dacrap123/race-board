@@ -379,6 +379,15 @@ button { cursor: pointer; font-family: inherit; }
   );
 }
 
+/* ── Track container (positions overlay relative to the board) ── */
+.track-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Track wrapper ── */
 .track-wrap {
   flex: 1;
@@ -389,6 +398,117 @@ button { cursor: pointer; font-family: inherit; }
   padding: 4px 12px;
   gap: var(--gap);
   overflow: hidden;
+}
+.track-blurred {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Setup scratch overlay ── */
+.setup-scratch-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 15, 30, 0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.setup-scratch-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  min-width: 300px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+}
+.ssc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ssc-pot {
+  font-size: 0.9rem;
+  color: var(--green);
+  font-weight: 600;
+}
+.ssc-empty {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 12px 0;
+}
+.ssc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.ssc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--surface2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.ssc-num {
+  width: 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-align: center;
+  flex-shrink: 0;
+}
+.ssc-horse-name {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.ssc-penalty {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+.ssc-penalty strong {
+  color: var(--text);
+}
+.ssc-remove {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.ssc-remove:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(239,68,68,0.08);
+}
+.ssc-status {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 /* ── Zone label bar ── */

@@ -113,6 +113,9 @@ io.on('connection', (socket) => {
         const h = parseInt(payload.horse);
         if (h >= 2 && h <= 12 && !state.scratchedHorses.includes(h)) {
           state.scratchedHorses.push(h);
+          const scratchIdx = state.scratchedHorses.length - 1;
+          const penalty = (scratchIdx + 1) * state.baseBet;
+          state.pot = Math.round((state.pot + penalty) * 100) / 100;
           changed = true;
         }
       }
@@ -121,8 +124,13 @@ io.on('connection', (socket) => {
     else if (type === 'UNSCRATCH_HORSE') {
       if (state.phase === 'setup') {
         const h = parseInt(payload.horse);
-        state.scratchedHorses = state.scratchedHorses.filter(x => x !== h);
-        changed = true;
+        const scratchIdx = state.scratchedHorses.indexOf(h);
+        if (scratchIdx !== -1) {
+          const penalty = (scratchIdx + 1) * state.baseBet;
+          state.pot = Math.max(0, Math.round((state.pot - penalty) * 100) / 100);
+          state.scratchedHorses = state.scratchedHorses.filter(x => x !== h);
+          changed = true;
+        }
       }
     }
 
@@ -135,7 +143,14 @@ io.on('connection', (socket) => {
     }
 
     else if (type === 'ROLL_HORSE') {
-      if (state.phase === 'racing') {
+      const scratchIdxSetup = state.scratchedHorses.indexOf(parseInt(payload.horse));
+      if (state.phase === 'setup' && scratchIdxSetup !== -1) {
+        // Clicking a scratched horse during setup adds its penalty to the pot
+        const h = parseInt(payload.horse);
+        const penalty = (scratchIdxSetup + 1) * state.baseBet;
+        state.pot = Math.round((state.pot + penalty) * 100) / 100;
+        changed = true;
+      } else if (state.phase === 'racing') {
         const h = parseInt(payload.horse);
         if (h < 2 || h > 12) return;
 

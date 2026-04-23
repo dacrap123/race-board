@@ -187,7 +187,43 @@ export default function RaceBoard({ gameState, sessionCode, dispatch }) {
       )}
 
       {/* ── Track (always visible, even during setup) ── */}
-      <div className="track-wrap">
+      <div className="track-container">
+
+      {/* Setup overlay — blurs board and shows scratch list */}
+      {isSetup && (
+        <div className="setup-scratch-overlay">
+          <div className="setup-scratch-card">
+            <div className="ssc-header">
+              <span>Race Setup</span>
+              {pot > 0 && <span className="ssc-pot">Pot: ${pot.toFixed(2)}</span>}
+            </div>
+            {scratchedHorses.length === 0 ? (
+              <p className="ssc-empty">Scratch 4 horses on the controller to begin</p>
+            ) : (
+              <div className="ssc-list">
+                {scratchedHorses.map((h, i) => (
+                  <div key={h} className="ssc-row">
+                    <span className="ssc-num">{i + 1}</span>
+                    <HorseToken number={h} size={32} />
+                    <span className="ssc-horse-name" style={{ color: HORSE_COLORS[h] }}>Horse {h}</span>
+                    <span className="ssc-penalty">{i + 1}× ${baseBet.toFixed(2)} = <strong>${penaltyFor(i, baseBet).toFixed(2)}</strong></span>
+                    {dispatch && (
+                      <button className="ssc-remove" onClick={() => dispatch('UNSCRATCH_HORSE', { horse: h })}>✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="ssc-status">
+              {scratchedHorses.length < 4
+                ? `Scratch ${4 - scratchedHorses.length} more horse${4 - scratchedHorses.length !== 1 ? 's' : ''} to start`
+                : '✓ Ready — press Start Race on the controller'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`track-wrap${isSetup ? ' track-blurred' : ''}`}>
 
         <div className="zone-bar">
           <div className="zb-spacer" />
@@ -217,6 +253,7 @@ export default function RaceBoard({ gameState, sessionCode, dispatch }) {
         </div>
 
       </div>
+      </div>{/* end track-container */}
 
       {/* ── Footer ── */}
       {!isSetup && scratchedHorses.length > 0 && (

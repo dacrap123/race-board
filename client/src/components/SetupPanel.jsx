@@ -8,7 +8,8 @@ export default function SetupPanel({ gameState, dispatch }) {
 
   function toggleScratch(horse) {
     if (scratchedHorses.includes(horse)) {
-      dispatch('UNSCRATCH_HORSE', { horse });
+      // Re-clicking a scratched horse adds its penalty to the pot (handled server-side)
+      dispatch('ROLL_HORSE', { horse });
     } else if (scratchedHorses.length < 4) {
       dispatch('SCRATCH_HORSE', { horse });
     }
