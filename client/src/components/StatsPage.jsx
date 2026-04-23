@@ -58,7 +58,7 @@ export default function StatsPage({ onBack }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/stats')
+    fetch('/api/stats')
       .then(r => r.json())
       .then(data => { setStats(data); setLoading(false); })
       .catch(() => { setError('Could not load stats. Is the server running?'); setLoading(false); });
