@@ -38,6 +38,11 @@ function saveGameRecord(state) {
   fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
 }
 
+app.get('/api/sessions/:code', (req, res) => {
+  const code = req.params.code.toUpperCase().trim();
+  res.json({ exists: !!sessions[code] });
+});
+
 app.get('/api/stats', (_req, res) => res.json(loadStats()));
 
 app.delete('/api/stats/:id', (req, res) => {

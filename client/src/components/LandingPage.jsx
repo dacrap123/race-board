@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -14,24 +14,37 @@ export default function LandingPage({ onJoin, onStats }) {
   const [step, setStep] = useState('pick');   // 'pick' | 'display' | 'controller' | 'single'
   const [sessionCode] = useState(generateCode);
   const [inputCode, setInputCode] = useState('');
+  const [joinError, setJoinError] = useState('');
+  const [joining, setJoining] = useState(false);
 
   function handlePick(mode) {
     setStep(mode);
-    if (mode !== 'controller') {
-      // auto-join with generated code
-      if (mode === 'single') {
-        onJoin('single', sessionCode);
-      }
-    }
+    setJoinError('');
+    if (mode === 'single') onJoin('single', sessionCode);
   }
 
   function handleDisplayJoin() {
     onJoin('display', sessionCode);
   }
 
-  function handleControllerJoin() {
+  async function handleControllerJoin() {
     const code = inputCode.toUpperCase().trim();
-    if (code.length >= 4) onJoin('controller', code);
+    if (code.length < 4) return;
+    setJoining(true);
+    setJoinError('');
+    try {
+      const res = await fetch(`/api/sessions/${code}`);
+      const { exists } = await res.json();
+      if (exists) {
+        onJoin('controller', code);
+      } else {
+        setJoinError(`No active session "${code}" — check the code on the display screen.`);
+      }
+    } catch {
+      setJoinError('Could not reach server. Is it running?');
+    } finally {
+      setJoining(false);
+    }
   }
 
   return (
@@ -89,22 +102,23 @@ export default function LandingPage({ onJoin, onStats }) {
           <div className="landing-section">
             <p className="landing-hint">Enter the session code shown on the display:</p>
             <input
-              className="code-input"
+              className={`code-input${joinError ? ' code-input-error' : ''}`}
               maxLength={4}
               placeholder="XXXX"
               value={inputCode}
-              onChange={e => setInputCode(e.target.value.toUpperCase())}
+              onChange={e => { setInputCode(e.target.value.toUpperCase()); setJoinError(''); }}
               onKeyDown={e => e.key === 'Enter' && handleControllerJoin()}
               autoFocus
             />
+            {joinError && <p className="join-error">{joinError}</p>}
             <button
               className="primary-btn"
               onClick={handleControllerJoin}
-              disabled={inputCode.trim().length < 4}
+              disabled={inputCode.trim().length < 4 || joining}
             >
-              Join Session →
+              {joining ? 'Checking…' : 'Join Session →'}
             </button>
-            <button className="back-btn" onClick={() => setStep('pick')}>← Back</button>
+            <button className="back-btn" onClick={() => { setStep('pick'); setJoinError(''); }}>← Back</button>
           </div>
         )}
       </div>

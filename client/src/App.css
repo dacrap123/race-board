@@ -129,6 +129,14 @@ button { cursor: pointer; font-family: inherit; }
   text-transform: uppercase;
 }
 .code-input:focus { border-color: var(--accent); }
+.code-input-error { border-color: var(--red) !important; }
+.join-error {
+  color: var(--red);
+  font-size: 0.82rem;
+  text-align: center;
+  margin-top: -4px;
+  line-height: 1.4;
+}
 
 .primary-btn {
   background: var(--accent);
