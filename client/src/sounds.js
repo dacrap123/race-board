@@ -1,5 +1,6 @@
 let ctx = null;
 let lastStartAt = 0;
+let startAudio = null;
 
 function getCtx() {
   if (!ctx) {
@@ -11,6 +12,33 @@ function getCtx() {
 
 export function initAudio() {
   try { getCtx().resume(); } catch (_) {}
+}
+
+function getStartAudio() {
+  if (!startAudio) {
+    startAudio = new Audio('/sounds/start.mp4');
+    startAudio.preload = 'auto';
+  }
+  return startAudio;
+}
+
+// iPadOS/Safari requires a local user gesture before audio can be started by
+// a later remote Socket.IO event. The display calls this from its unlock tap.
+export async function unlockAudio() {
+  try {
+    initAudio();
+    const audio = getStartAudio();
+    audio.currentTime = 0;
+    audio.muted = true;
+    await audio.play();
+    audio.pause();
+    audio.currentTime = 0;
+    audio.muted = false;
+    return true;
+  } catch (_) {
+    if (startAudio) startAudio.muted = false;
+    return false;
+  }
 }
 
 // Trumpet note — sawtooth + detuned copy + lowpass, full ADSR envelope
@@ -207,8 +235,9 @@ export const playStart   = () => {
 // chain, including on iPhone and iPad.
 function playLocalStartClip() {
   try {
-    const audio = new Audio('/sounds/start.mp4');
-    audio.preload = 'auto';
+    const audio = getStartAudio();
+    audio.muted = false;
+    audio.volume = 1;
     audio.currentTime = 0;
     const stop = () => {
       audio.pause();

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { HORSES, HORSE_COLORS, TRACK_LENGTHS, penaltyFor } from '../horseData';
 import HorseToken from './HorseToken';
-import { playMove, playPenalty, playStart, playWinner, initAudio } from '../sounds';
+import { playMove, playPenalty, playStart, playWinner, unlockAudio } from '../sounds';
 
 function TrackRow({ horse, position, isScratched, scratchIndex, baseBet, isWinner }) {
   const tLen    = TRACK_LENGTHS[horse];
@@ -76,6 +76,9 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
   // Sound is enabled by default. Browsers may still require the first game
   // action as the user gesture that unlocks audio, which Start Race provides.
   const [soundEnabled] = useState(true);
+  const [soundUnlocked, setSoundUnlocked] = useState(() => {
+    try { return sessionStorage.getItem('race-board-audio-unlocked') === '1'; } catch (_) { return false; }
+  });
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   // Snapshot winner data so the modal survives a server reset
   const [winnerSnap, setWinnerSnap] = useState(null);
@@ -153,6 +156,16 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
         <span className={`board-connection ${connected ? 'status-on' : 'status-off'}`}>
           {connected ? '● Connected' : '● Disconnected'}
         </span>
+        {!soundUnlocked && (
+          <button className="sound-unlock-btn" onClick={async () => {
+            if (await unlockAudio()) {
+              setSoundUnlocked(true);
+              try { sessionStorage.setItem('race-board-audio-unlocked', '1'); } catch (_) {}
+            }
+          }}>
+            🔇 Tap to enable sound
+          </button>
+        )}
         {!isSetup && lastRoll && (
           <span className="board-last-roll" aria-live="polite">
             {lastRoll.kind === 'penalty' ? '⚠' : '➜'} Horse {lastRoll.horse}
