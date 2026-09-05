@@ -17,23 +17,22 @@ export const HORSE_COLORS = {
 // Steps each horse needs to reach its finish line.
 // Mirrors the physical board's pyramid shape — horse 7 needs the most rolls.
 export const TRACK_LENGTHS = {
-  2:  3,
-  3:  5,
-  4:  7,
-  5:  9,
-  6:  11,
-  7:  13,
-  8:  11,
-  9:  9,
-  10: 7,
-  11: 5,
-  12: 3,
+  2:  6,
+  3:  8,
+  4:  10,
+  5:  12,
+  6:  14,
+  7:  16,
+  8:  14,
+  9:  12,
+  10: 10,
+  11: 8,
+  12: 6,
 };
 
-export const MAX_TRACK = 13; // horse 7's track length (widest column)
+export const MAX_TRACK = 16; // horse 7's track length (widest column)
 export const SCRATCH_SLOTS = 4;
 
 export function penaltyFor(scratchIndex, baseBet) {
   return (scratchIndex + 1) * baseBet;
 }
-
