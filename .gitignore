@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.vite/
+.env
+*.log
+out.txt
+err.txt
+server/data/stats.json
