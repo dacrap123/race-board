@@ -1280,6 +1280,18 @@ input:focus-visible {
 }
 
 @media (max-width: 700px) {
+  /* Display mode must also fit the full 17-cell lane on narrow phones. */
+  :root {
+    --D: clamp(
+      12px,
+      min(
+        calc((100vw - 5 * var(--gap) - 16px) / 22),
+        calc((100dvh - 10 * var(--gap) - 120px) / 11)
+      ),
+      48px
+    );
+  }
+
   .single-device-layout { flex-direction: column; }
   .single-board-pane {
     flex: none;
