@@ -4,7 +4,7 @@ import { HORSES, HORSE_COLORS, TRACK_LENGTHS, penaltyFor } from '../horseData';
 import HorseToken from './HorseToken';
 import { playMove, playPenalty, playStart, playWinner, initAudio } from '../sounds';
 
-function TrackRow({ horse, position, isScratched, scratchIndex, isWinner }) {
+function TrackRow({ horse, position, isScratched, scratchIndex, baseBet, isWinner }) {
   const tLen    = TRACK_LENGTHS[horse];
   const color   = HORSE_COLORS[horse];
   const atFinish = !isScratched && position >= tLen;
@@ -17,7 +17,7 @@ function TrackRow({ horse, position, isScratched, scratchIndex, isWinner }) {
           const hasToken = isScratched && scratchIndex === si;
           return (
             <div key={si} className={`bcell scratch-bcell ${hasToken ? 'bcell-occupied' : ''}`}>
-              {hasToken && <HorseToken number={horse} fluid />}
+              {hasToken && <HorseToken number={horse} fluid scratched penalty={penaltyFor(scratchIndex, baseBet)} />}
             </div>
           );
         })}

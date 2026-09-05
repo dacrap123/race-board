@@ -91,7 +91,7 @@ export default function SetupPanel({ gameState, dispatch, playStartCue = false }
                 onClick={() => toggleScratch(h)}
                 disabled={full}
               >
-                <HorseToken number={h} size={44} scratched={isScratched} />
+                <HorseToken number={h} size={44} scratched={isScratched} penalty={isScratched ? penaltyFor(scratchIdx, baseBet) : null} />
                 {isScratched && (
                   <span className="horse-pick-badge">{scratchIdx + 1}</span>
                 )}

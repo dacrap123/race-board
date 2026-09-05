@@ -819,8 +819,21 @@ input:focus-visible {
   height: 100%;
 }
 .horse-token-image-scratched {
-  opacity: 0.2;
+  opacity: 0.5;
   filter: grayscale(1) brightness(0.55);
+}
+.horse-token-penalty {
+  position: absolute;
+  left: 51%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  color: #ff4d5a;
+  font-size: clamp(9px, calc(var(--token-size, var(--D)) * 0.2), 13px);
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.95);
 }
 .horse-token-number,
 .ht-number {

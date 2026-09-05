@@ -7,7 +7,7 @@ import { HORSE_COLORS } from '../horseData';
  *  fluid=true:            ignores `size`, reads --D from CSS for fully responsive sizing.
  *                         Use this inside track cells so the token scales with the board.
  */
-export default function HorseToken({ number, size = 48, scratched = false, fluid = false }) {
+export default function HorseToken({ number, size = 48, scratched = false, penalty = null, fluid = false }) {
   const color = HORSE_COLORS[number];
 
   if (fluid) {
@@ -24,8 +24,8 @@ export default function HorseToken({ number, size = 48, scratched = false, fluid
         />
         {scratched ? (
           <>
-            <span className="ht-number horse-token-number" style={{ opacity: 0.3 }}>{number}</span>
-            <div className="ht-x-overlay">✕</div>
+            {penalty != null && <span className="horse-token-penalty">+${penalty.toFixed(2)}</span>}
+            <span className="ht-number horse-token-number">{number}</span>
           </>
         ) : (
           <span className="ht-number horse-token-number">{number}</span>
@@ -57,13 +57,8 @@ export default function HorseToken({ number, size = 48, scratched = false, fluid
       />
       {scratched ? (
         <>
-          <span className="horse-token-number" style={{ fontWeight: 900, color: '#666', lineHeight: 1 }}>{number}</span>
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: size * 0.52, color: '#ef4444', fontWeight: 900, lineHeight: 1 }}>✕</span>
-          </div>
+          {penalty != null && <span className="horse-token-penalty">+${penalty.toFixed(2)}</span>}
+          <span className="horse-token-number" style={{ fontWeight: 900, color: 'white', lineHeight: 1 }}>{number}</span>
         </>
       ) : (
         <span className="horse-token-number" style={{

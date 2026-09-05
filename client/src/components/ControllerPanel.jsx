@@ -72,7 +72,7 @@ export default function ControllerPanel({ gameState, dispatch }) {
               onClick={() => handleRoll(h)}
               disabled={isFinished}
             >
-              <HorseToken number={h} size={52} scratched={isScratched} />
+              <HorseToken number={h} size={52} scratched={isScratched} penalty={isScratched ? penalty : null} />
               {isScratched && (
                 <span className="roll-penalty-tag">+${penalty.toFixed(2)}</span>
               )}
