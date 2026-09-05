@@ -73,9 +73,6 @@ export default function ControllerPanel({ gameState, dispatch }) {
               disabled={isFinished}
             >
               <HorseToken number={h} size={52} scratched={isScratched} penalty={isScratched ? penalty : null} />
-              {isScratched && (
-                <span className="roll-penalty-tag">+${penalty.toFixed(2)}</span>
-              )}
               {isWinner && <span className="roll-winner-tag">🏆</span>}
             </button>
           );
