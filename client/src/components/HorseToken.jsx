@@ -17,7 +17,7 @@ export default function HorseToken({ number, size = 48, scratched = false, penal
         style={{ '--hc': color }}
       >
         <img
-          className={`horse-token-image ${scratched ? 'horse-token-image-scratched' : ''}`}
+          className={`horse-token-image ${scratched ? 'horse-token-image-scratched' : ''} ${scratched ? 'horse-token-image-scratched-board' : ''}`}
           src="/assets/horse-playing-piece.png"
           alt=""
           aria-hidden="true"
@@ -50,15 +50,16 @@ export default function HorseToken({ number, size = 48, scratched = false, penal
       userSelect: 'none', flexShrink: 0,
     }}>
       <img
-        className={`horse-token-image ${scratched ? 'horse-token-image-scratched' : ''}`}
+        className={`horse-token-image ${scratched ? 'horse-token-image-scratched horse-token-image-scratched-compact' : ''}`}
         src="/assets/horse-playing-piece.png"
         alt=""
         aria-hidden="true"
       />
       {scratched ? (
         <>
-          {penalty != null && <span className="horse-token-penalty">+${penalty.toFixed(2)}</span>}
-          <span className="horse-token-number" style={{ fontWeight: 900, color: 'white', lineHeight: 1 }}>{number}</span>
+          {penalty != null && <span className="horse-token-penalty horse-token-penalty-below">+${penalty.toFixed(2)}</span>}
+          <span className="horse-token-number" style={{ fontWeight: 900, color: '#666', lineHeight: 1 }}>{number}</span>
+          <div className="horse-token-x-overlay">✕</div>
         </>
       ) : (
         <span className="horse-token-number" style={{
