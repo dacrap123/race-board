@@ -429,20 +429,20 @@ input:focus-visible {
  * Layout: [row-fixed: s4+s3+s2+s1+start] [row-track: flex:1 space-between]
  * --D is computed with CSS min() so the full board fits the viewport with no scrolling.
  *
- * Horizontal constraint: 18*D + 5*gap + 24px padding ≤ 100vw  (fixed 5 cells + min 13 track)
+ * Horizontal constraint: 22*D + 5*gap + 24px padding ≤ 100vw  (fixed 5 cells + 17-cell track)
  * Vertical constraint:   11*D + 10*gap + ~148px overhead ≤ 100vh
  */
 :root {
   --gap: 3px;
   /*
    * Horizontal constraint: fixed section = 5 cells + 4 gaps,
-   * track section needs min 13 cells (horse 7), 1 gap between sections.
-   * Total: 18*D + 5*gap + 24px padding ≤ 100vw
+   * track section needs 17 cells (horse 7), 1 gap between sections.
+   * Total: 22*D + 5*gap + 24px padding ≤ 100vw
    */
   --D: clamp(
     26px,
     min(
-      calc((100vw - 5 * var(--gap) - 24px) / 18),
+      calc((100vw - 5 * var(--gap) - 24px) / 22),
       calc((100vh - 10 * var(--gap) - 148px) / 11)
     ),
     96px
@@ -1234,7 +1234,7 @@ input:focus-visible {
   --D: clamp(
     22px,
     min(
-      calc((55vw - 5 * var(--gap) - 24px) / 18),
+      calc((55vw - 5 * var(--gap) - 24px) / 22),
       calc((100vh - 10 * var(--gap) - 148px) / 11)
     ),
     72px
@@ -1257,7 +1257,7 @@ input:focus-visible {
     --D: clamp(
       18px,
       min(
-        calc((100vw - 5 * var(--gap) - 16px) / 18),
+        calc((100vw - 5 * var(--gap) - 16px) / 22),
         calc((43dvh - 10 * var(--gap) - 120px) / 11)
       ),
       48px
