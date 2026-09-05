@@ -7,7 +7,6 @@ import { playMove, playPenalty, playStart, playWinner, unlockAudio } from '../so
 function TrackRow({ horse, position, isScratched, scratchIndex, baseBet, isWinner }) {
   const tLen    = TRACK_LENGTHS[horse];
   const color   = HORSE_COLORS[horse];
-  const atFinish = !isScratched && position >= tLen;
 
   return (
     <div className={`board-row ${isWinner ? 'row-winner' : ''} ${isScratched ? 'row-scratched' : ''}`}>
@@ -27,27 +26,29 @@ function TrackRow({ horse, position, isScratched, scratchIndex, baseBet, isWinne
       </div>
 
       <div className="row-track">
-        {Array.from({ length: tLen }, (_, i) => {
+        {Array.from({ length: Math.max(0, tLen - 1) }, (_, i) => {
           const trackPos  = i + 1;
-          const isFinish  = trackPos === tLen;
-          const showToken = !isScratched && (
-            position === trackPos || (atFinish && isFinish)
-          );
+          const showToken = !isScratched && position === trackPos;
           return (
             <div
               key={trackPos}
               className={[
                 'bcell',
-                isFinish ? 'finish-bcell' : 'active-bcell',
+                'active-bcell',
                 showToken ? 'bcell-occupied' : '',
-                isWinner && isFinish ? 'bcell-winner' : '',
+                isWinner ? 'bcell-winner' : '',
               ].filter(Boolean).join(' ')}
-              style={isFinish ? { '--fc': color } : {}}
             >
               {showToken && <HorseToken number={horse} fluid />}
             </div>
           );
         })}
+        <div
+          className={`bcell finish-bcell ${!isScratched && position >= tLen ? 'bcell-occupied' : ''} ${isWinner ? 'bcell-winner' : ''}`}
+          style={{ '--fc': color }}
+        >
+          {!isScratched && position >= tLen && <HorseToken number={horse} fluid />}
+        </div>
       </div>
 
     </div>

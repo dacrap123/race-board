@@ -678,10 +678,16 @@ input:focus-visible {
 .row-track {
   flex: 1;
   display: flex;
-  justify-content: space-between;
+  position: relative;
+  justify-content: space-evenly;
   align-items: center;
+  padding-right: var(--D);
   min-width: 0;
   overflow: visible;
+}
+.row-track > .finish-bcell {
+  position: absolute;
+  right: 0;
 }
 
 /* ── Base circle cell ── */
