@@ -284,6 +284,17 @@ input:focus-visible {
   font-size: 0.75rem;
   font-weight: 700;
 }
+.board-home-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 20px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.board-home-btn:hover { color: var(--text); border-color: var(--text-dim); }
 .race-event-banner {
   flex-shrink: 0;
   text-align: center;
@@ -1418,6 +1429,7 @@ input:focus-visible {
     font-size: 0;
   }
   .single-board-pane .sound-unlock-btn::after { content: '🔊'; font-size: 0.8rem; }
+  .single-board-pane .board-home-btn { padding: 3px 6px; font-size: 0.65rem; }
   .single-board-pane .board-setup-bar { padding: 3px 8px; font-size: 0.68rem; }
 
   /* On narrow phones the board pane is full width */

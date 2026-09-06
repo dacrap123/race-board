@@ -110,6 +110,12 @@ function pushHistory(state) {
   if (state.history.length > 20) state.history.shift();
 }
 
+function refreshScratchPot(state) {
+  state.pot = Math.round(
+    state.scratchedHorses.reduce((total, _horse, index) => total + (index + 1) * state.baseBet, 0) * 100
+  ) / 100;
+}
+
 io.on('connection', (socket) => {
   let currentSession = null;
 
@@ -141,6 +147,7 @@ io.on('connection', (socket) => {
         const amount = parseFloat(payload.amount);
         if (amount > 0 && isFinite(amount)) {
           state.baseBet = Math.round(amount * 100) / 100;
+          refreshScratchPot(state);
           changed = true;
         }
       }
@@ -151,9 +158,7 @@ io.on('connection', (socket) => {
         const h = parseInt(payload.horse);
         if (h >= 2 && h <= 12 && !state.scratchedHorses.includes(h)) {
           state.scratchedHorses.push(h);
-          const scratchIdx = state.scratchedHorses.length - 1;
-          const penalty = (scratchIdx + 1) * state.baseBet;
-          state.pot = Math.round((state.pot + penalty) * 100) / 100;
+          refreshScratchPot(state);
           changed = true;
         }
       }
@@ -164,9 +169,8 @@ io.on('connection', (socket) => {
         const h = parseInt(payload.horse);
         const scratchIdx = state.scratchedHorses.indexOf(h);
         if (scratchIdx !== -1) {
-          const penalty = (scratchIdx + 1) * state.baseBet;
-          state.pot = Math.max(0, Math.round((state.pot - penalty) * 100) / 100);
           state.scratchedHorses = state.scratchedHorses.filter(x => x !== h);
+          refreshScratchPot(state);
           changed = true;
         }
       }
@@ -181,14 +185,7 @@ io.on('connection', (socket) => {
     }
 
     else if (type === 'ROLL_HORSE') {
-      const scratchIdxSetup = state.scratchedHorses.indexOf(parseInt(payload.horse));
-      if (state.phase === 'setup' && scratchIdxSetup !== -1) {
-        // Clicking a scratched horse during setup adds its penalty to the pot
-        const h = parseInt(payload.horse);
-        const penalty = (scratchIdxSetup + 1) * state.baseBet;
-        state.pot = Math.round((state.pot + penalty) * 100) / 100;
-        changed = true;
-      } else if (state.phase === 'racing') {
+      if (state.phase === 'racing') {
         const h = parseInt(payload.horse);
         if (h < 2 || h > 12) return;
 
@@ -246,3 +243,4 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () =>
   console.log(`Race Board server → http://localhost:${PORT}`)
 );
+

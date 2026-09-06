@@ -72,7 +72,7 @@ function formatElapsed(seconds) {
   return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-export default function RaceBoard({ gameState, sessionCode, connected = true, dispatch, canControl = true, presentation = false, setupOnThisScreen = false }) {
+export default function RaceBoard({ gameState, sessionCode, connected = true, dispatch, canControl = true, presentation = false, setupOnThisScreen = false, onHome }) {
   const { phase, baseBet, scratchedHorses, positions, pot, winner, rollLog = [] } = gameState;
   const prevRef = useRef(null);
   // Sound is enabled by default. Browsers may still require the first game
@@ -199,6 +199,7 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
             ⛶ Fullscreen
           </button>
         )}
+        {onHome && <button className="board-home-btn" onClick={onHome}>⌂ Home</button>}
       </header>
 
       {!isSetup && lastRoll && (

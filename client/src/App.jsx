@@ -126,7 +126,7 @@ export default function App() {
               Reconnect
             </button>
           )}
-          <button className="ctrl-leave" onClick={leaveSession}>Leave</button>
+          <button className="ctrl-leave" onClick={leaveSession}>⌂ Home</button>
         </div>
         {gameState.phase === 'setup'
           // In split mode the display owns race audio. The controller only
@@ -140,14 +140,14 @@ export default function App() {
 
   // Display mode
   if (mode === 'display') {
-    return <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} canControl={false} presentation />;
+    return <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} canControl={false} presentation onHome={leaveSession} />;
   }
 
   // Single device: stacked board + controls
   return (
     <div className="single-device-layout">
       <div className="single-board-pane">
-        <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} setupOnThisScreen />
+        <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} setupOnThisScreen onHome={leaveSession} />
       </div>
       <div className="single-ctrl-pane">
         {gameState.phase === 'setup'

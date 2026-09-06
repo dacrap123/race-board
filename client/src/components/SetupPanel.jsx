@@ -22,8 +22,7 @@ export default function SetupPanel({ gameState, dispatch, playStartCue = false, 
 
   function toggleScratch(horse) {
     if (scratchedHorses.includes(horse)) {
-      // Re-clicking a scratched horse adds its penalty to the pot (handled server-side)
-      dispatch('ROLL_HORSE', { horse });
+      dispatch('UNSCRATCH_HORSE', { horse });
     } else if (scratchedHorses.length < 4) {
       dispatch('SCRATCH_HORSE', { horse });
     }
@@ -76,7 +75,7 @@ export default function SetupPanel({ gameState, dispatch, playStartCue = false, 
       <section className="setup-section">
         <h3 className="section-label">
           Scratch Horses
-          <span className="section-sub"> — tap in order ({scratchedHorses.length}/4)</span>
+          <span className="section-sub"> — tap in order ({scratchedHorses.length}/4), tap again to undo</span>
         </h3>
 
         <div className="horse-grid">
