@@ -1258,8 +1258,16 @@ input:focus-visible {
 .single-board-pane .race-board { height: 100dvh; }
 .single-ctrl-pane {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
+}
+.single-ctrl-pane > .setup-panel,
+.single-ctrl-pane > .controller-panel {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ─── Responsive ────────────────────────────────────────────────────────── */
@@ -1302,10 +1310,38 @@ input:focus-visible {
   .single-board-pane .race-board { height: 43dvh; }
   .single-ctrl-pane { flex: 1; }
 
+  /* The lower panel repeats these details; keep the compact board header to
+     one line so all eleven lanes remain visible above the controls. */
+  .single-board-pane .board-header {
+    min-height: 34px;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 4px 8px;
+  }
+  .single-board-pane .board-title,
+  .single-board-pane .board-session,
+  .single-board-pane .board-payout,
+  .single-board-pane .board-timer,
+  .single-board-pane .board-connection { display: none; }
+  .single-board-pane .board-meta { flex-wrap: nowrap; gap: 6px; }
+  .single-board-pane .board-pot,
+  .single-board-pane .board-pot strong { font-size: 0.78rem; white-space: nowrap; }
+  .single-board-pane .board-phase { font-size: 0.65rem; padding: 3px 7px; }
+  .single-board-pane .sound-unlock-btn {
+    flex: 0 0 auto;
+    overflow: hidden;
+    width: 30px;
+    height: 26px;
+    padding: 0;
+    font-size: 0;
+  }
+  .single-board-pane .sound-unlock-btn::after { content: '🔊'; font-size: 0.8rem; }
+  .single-board-pane .board-setup-bar { padding: 3px 8px; font-size: 0.68rem; }
+
   /* On narrow phones the board pane is full width */
   .single-device-layout {
     --D: clamp(
-      18px,
+      8px,
       min(
         calc((100vw - 5 * var(--gap) - 16px) / 22),
         calc((43dvh - 10 * var(--gap) - 120px) / 11)
@@ -1353,6 +1389,11 @@ input:focus-visible {
   .horse-pick-btn > .horse-token {
     --token-size: clamp(28px, 10vw, 38px);
   }
+}
+
+/* Compress setup just enough to keep every control visible on 320px phones. */
+@media (max-width: 350px) {
+  .single-ctrl-pane > .setup-panel { zoom: 0.84; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1613,3 +1654,4 @@ input:focus-visible {
   .stat-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .stats-content   { padding: 16px; gap: 16px; }
 }
+

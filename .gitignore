@@ -6,3 +6,5 @@ dist/
 out.txt
 err.txt
 server/data/stats.json
+server/data/active-sessions.json
+
