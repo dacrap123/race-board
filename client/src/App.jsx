@@ -7,14 +7,41 @@ import ControllerPanel from './components/ControllerPanel';
 const StatsPage = lazy(() => import('./components/StatsPage'));
 
 export default function App() {
-  const [mode, setMode] = useState(null);           // 'display' | 'controller' | 'single' | 'stats'
-  const [sessionCode, setSessionCode] = useState('');
+  const sharedSession = new URLSearchParams(window.location.search).get('join')?.toUpperCase().trim() || '';
+  const [mode, setMode] = useState(() => {
+    if (sharedSession) return 'controller';
+    try { return localStorage.getItem('race-board-mode') || null; } catch (_) { return null; }
+  });
+  const [sessionCode, setSessionCode] = useState(() => {
+    if (sharedSession) return sharedSession;
+    try { return localStorage.getItem('race-board-session') || ''; } catch (_) { return ''; }
+  });
   const [gameState, setGameState] = useState(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
 
   function dispatch(type, payload = {}) {
     socket.emit('action', { type, payload });
+  }
+
+  function leaveSession() {
+    try {
+      localStorage.removeItem('race-board-mode');
+      localStorage.removeItem('race-board-session');
+    } catch (_) {}
+    setMode(null);
+    setSessionCode('');
+    setError('');
+  }
+
+  function joinSession(nextMode, code) {
+    const normalized = code.toUpperCase().trim();
+    try {
+      localStorage.setItem('race-board-mode', nextMode);
+      localStorage.setItem('race-board-session', normalized);
+    } catch (_) {}
+    setMode(nextMode);
+    setSessionCode(normalized);
   }
 
   // Connect to server when mode + code are chosen
@@ -57,7 +84,7 @@ export default function App() {
   if (!mode || !sessionCode) {
     return (
       <LandingPage
-        onJoin={(m, code) => { setMode(m); setSessionCode(code); }}
+        onJoin={joinSession}
         onStats={() => setMode('stats')}
       />
     );
@@ -68,7 +95,7 @@ export default function App() {
     return (
       <div className="loading-screen">
         <div className="loading-error">{error}</div>
-        <button className="back-btn" onClick={() => { setMode(null); setSessionCode(''); setError(''); }}>
+        <button className="back-btn" onClick={leaveSession}>
           ← Back
         </button>
       </div>
@@ -92,14 +119,14 @@ export default function App() {
           <span className="ctrl-session">Session: <strong>{sessionCode}</strong></span>
           <span className={`ctrl-dot ${connected ? 'dot-on' : 'dot-off'}`} />
           <span className={`ctrl-status ${connected ? 'status-on' : 'status-off'}`}>
-            {connected ? 'Connected' : 'Disconnected'}
+            {connected ? 'Controller connected' : 'Reconnecting…'}
           </span>
           {!connected && (
             <button className="ctrl-reconnect" onClick={() => socket.connect()}>
               Reconnect
             </button>
           )}
-          <button className="ctrl-leave" onClick={() => { setMode(null); setSessionCode(''); }}>Leave</button>
+          <button className="ctrl-leave" onClick={leaveSession}>Leave</button>
         </div>
         {gameState.phase === 'setup'
           // In split mode the display owns race audio. The controller only
@@ -113,21 +140,22 @@ export default function App() {
 
   // Display mode
   if (mode === 'display') {
-    return <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} canControl={false} />;
+    return <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} canControl={false} presentation />;
   }
 
   // Single device: stacked board + controls
   return (
     <div className="single-device-layout">
       <div className="single-board-pane">
-        <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} />
+        <RaceBoard gameState={gameState} sessionCode={sessionCode} connected={connected} dispatch={dispatch} setupOnThisScreen />
       </div>
       <div className="single-ctrl-pane">
         {gameState.phase === 'setup'
-          ? <SetupPanel gameState={gameState} dispatch={dispatch} playStartCue />
+          ? <SetupPanel gameState={gameState} dispatch={dispatch} playStartCue singleDevice />
           : <ControllerPanel gameState={gameState} dispatch={dispatch} />
         }
       </div>
     </div>
   );
 }
+

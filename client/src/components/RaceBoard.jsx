@@ -4,12 +4,13 @@ import { HORSES, HORSE_COLORS, TRACK_LENGTHS, penaltyFor } from '../horseData';
 import HorseToken from './HorseToken';
 import { playMove, playPenalty, playStart, playWinner, unlockAudio } from '../sounds';
 
-function TrackRow({ horse, position, isScratched, scratchIndex, baseBet, isWinner }) {
+function TrackRow({ horse, position, isScratched, scratchIndex, baseBet, isWinner, isLeader }) {
   const tLen    = TRACK_LENGTHS[horse];
   const color   = HORSE_COLORS[horse];
 
   return (
-    <div className={`board-row ${isWinner ? 'row-winner' : ''} ${isScratched ? 'row-scratched' : ''}`}>
+    <div className={`board-row ${isWinner ? 'row-winner' : ''} ${isScratched ? 'row-scratched' : ''} ${isLeader ? 'row-leader' : ''}`}>
+      {isLeader && <span className="leader-badge">LEADER</span>}
 
       <div className="row-fixed">
         {[3, 2, 1, 0].map(si => {
@@ -71,7 +72,7 @@ function formatElapsed(seconds) {
   return `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-export default function RaceBoard({ gameState, sessionCode, connected = true, dispatch, canControl = true }) {
+export default function RaceBoard({ gameState, sessionCode, connected = true, dispatch, canControl = true, presentation = false, setupOnThisScreen = false }) {
   const { phase, baseBet, scratchedHorses, positions, pot, winner, rollLog = [] } = gameState;
   const prevRef = useRef(null);
   // Sound is enabled by default. Browsers may still require the first game
@@ -84,6 +85,7 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
   // Snapshot winner data so the modal survives a server reset
   const [winnerSnap, setWinnerSnap] = useState(null);
   const [now, setNow] = useState(Date.now());
+  const wakeLockRef = useRef(null);
 
   useEffect(() => {
     if (!gameState.raceStartTime || phase === 'setup') return undefined;
@@ -91,6 +93,21 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, [gameState.raceStartTime, phase]);
+
+  useEffect(() => {
+    if (!presentation || !('wakeLock' in navigator)) return undefined;
+    const requestWakeLock = async () => {
+      try { wakeLockRef.current = await navigator.wakeLock.request('screen'); } catch (_) {}
+    };
+    const onVisibilityChange = () => { if (document.visibilityState === 'visible') requestWakeLock(); };
+    requestWakeLock();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      wakeLockRef.current?.release?.();
+      wakeLockRef.current = null;
+    };
+  }, [presentation]);
 
   // Sound effects
   useEffect(() => {
@@ -130,6 +147,23 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
   const isRacing   = phase === 'racing';
   const isFinished = phase === 'finished';
   const lastRoll = rollLog.length ? rollLog[rollLog.length - 1] : null;
+  const activeHorses = HORSES.filter(h => !scratchedHorses.includes(h));
+  const leaderProgress = Math.max(0, ...activeHorses.map(h => (positions[h] || 0) / TRACK_LENGTHS[h]));
+  const leaders = leaderProgress > 0 ? activeHorses.filter(h => (positions[h] || 0) / TRACK_LENGTHS[h] === leaderProgress) : [];
+
+  async function enableSound() {
+    if (await unlockAudio()) {
+      setSoundUnlocked(true);
+      try { sessionStorage.setItem('race-board-audio-unlocked', '1'); } catch (_) {}
+    }
+  }
+
+  async function enterFullscreen() {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch (_) {}
+  }
 
   return (
     <div className="race-board">
@@ -155,24 +189,25 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
           {!isSetup && <span className="board-timer">⏱ {formatElapsed(elapsedSeconds)}</span>}
         </div>
         <span className={`board-connection ${connected ? 'status-on' : 'status-off'}`}>
-          {connected ? '● Connected' : '● Disconnected'}
+          {connected ? '● Display connected' : '● Reconnecting…'}
         </span>
-        {!soundUnlocked && (
-          <button className="sound-unlock-btn" onClick={async () => {
-            if (await unlockAudio()) {
-              setSoundUnlocked(true);
-              try { sessionStorage.setItem('race-board-audio-unlocked', '1'); } catch (_) {}
-            }
-          }}>
-            🔇 Tap to enable sound
+        <button className={`sound-unlock-btn ${soundUnlocked ? 'sound-ready' : ''}`} onClick={enableSound} aria-live="polite">
+          {soundUnlocked ? '🔊 Sound ready' : '🔇 Tap to enable sound'}
+        </button>
+        {presentation && (
+          <button className="presentation-btn" onClick={enterFullscreen} title="Toggle fullscreen presentation">
+            ⛶ Fullscreen
           </button>
         )}
-        {!isSetup && lastRoll && (
-          <span className="board-last-roll" aria-live="polite">
-            {lastRoll.kind === 'penalty' ? '⚠' : '➜'} Horse {lastRoll.horse}
-          </span>
-        )}
       </header>
+
+      {!isSetup && lastRoll && (
+        <div className={`race-event-banner ${lastRoll.kind === 'penalty' ? 'event-penalty' : ''}`} key={`${lastRoll.horse}-${rollLog.length}`} aria-live="assertive">
+          {lastRoll.kind === 'penalty'
+            ? `⚠ Horse ${lastRoll.horse} scratched — +$${lastRoll.amount.toFixed(2)} to the pot`
+            : `➜ Horse ${lastRoll.horse} advances`}
+        </div>
+      )}
 
       {/* ── Winner modal — only closes via New Game button ── */}
       {showWinnerModal && winnerSnap && (
@@ -230,7 +265,7 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
       {isSetup && (
         <div className="board-setup-bar">
           {scratchedHorses.length === 0
-            ? 'Waiting for setup — scratch 4 horses on the controller to begin'
+            ? `Waiting for setup — scratch 4 horses on ${setupOnThisScreen ? 'this screen' : 'the controller'} to begin`
             : scratchedHorses.length < 4
               ? `${scratchedHorses.length} of 4 horses scratched — scratch ${4 - scratchedHorses.length} more to start`
               : '4 horses scratched — ready to start'}
@@ -249,7 +284,7 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
               {pot > 0 && <span className="ssc-pot">Pot: ${pot.toFixed(2)}</span>}
             </div>
             {scratchedHorses.length === 0 ? (
-              <p className="ssc-empty">Scratch 4 horses on the controller to begin</p>
+              <p className="ssc-empty">Scratch 4 horses on {setupOnThisScreen ? 'this screen' : 'the controller'} to begin</p>
             ) : (
               <div className="ssc-list">
                 {scratchedHorses.map((h, i) => (
@@ -297,6 +332,7 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
                 scratchIndex={si}
                 baseBet={baseBet}
                 isWinner={winner === horse}
+                isLeader={leaders.includes(horse)}
               />
             );
           })}
@@ -320,3 +356,4 @@ export default function RaceBoard({ gameState, sessionCode, connected = true, di
     </div>
   );
 }
+

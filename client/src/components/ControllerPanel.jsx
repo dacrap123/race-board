@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HORSES, HORSE_COLORS, TRACK_LENGTHS, penaltyFor } from '../horseData';
 import HorseToken from './HorseToken';
 import { initAudio, playMove, playPenalty, playWinner } from '../sounds';
@@ -7,6 +7,11 @@ export default function ControllerPanel({ gameState, dispatch }) {
   const { baseBet, scratchedHorses, positions, phase, winner, pot, rollLog = [] } = gameState;
   const isFinished = phase === 'finished';
   const lastTapRef = useRef(0);
+  const resetTimerRef = useRef(null);
+  const [feedback, setFeedback] = useState('');
+  const [resetArmed, setResetArmed] = useState(false);
+
+  useEffect(() => () => window.clearTimeout(resetTimerRef.current), []);
 
   function handleRoll(horse) {
     if (isFinished) return;
@@ -17,12 +22,35 @@ export default function ControllerPanel({ gameState, dispatch }) {
     const scratchIdx = scratchedHorses.indexOf(horse);
     if (scratchIdx !== -1) {
       playPenalty();
+      setFeedback(`Horse ${horse} scratched — +$${penaltyFor(scratchIdx, baseBet).toFixed(2)} to the pot`);
+      navigator.vibrate?.([18, 40, 18]);
     } else if (positions[horse] + 1 >= TRACK_LENGTHS[horse]) {
       playWinner();
+      setFeedback(`Horse ${horse} reaches the finish!`);
+      navigator.vibrate?.([30, 45, 65]);
     } else {
       playMove();
+      setFeedback(`Horse ${horse} advances`);
+      navigator.vibrate?.(18);
     }
     dispatch('ROLL_HORSE', { horse });
+  }
+
+  function armReset() {
+    if (isFinished) {
+      dispatch('RESET');
+      return;
+    }
+    setResetArmed(true);
+    resetTimerRef.current = window.setTimeout(() => {
+      dispatch('RESET');
+      setResetArmed(false);
+    }, 900);
+  }
+
+  function cancelReset() {
+    window.clearTimeout(resetTimerRef.current);
+    if (resetArmed) setResetArmed(false);
   }
 
   return (
@@ -41,6 +69,8 @@ export default function ControllerPanel({ gameState, dispatch }) {
           Pot: <strong>${pot.toFixed(2)}</strong>
         </span>
       </div>
+
+      <div className="controller-feedback" aria-live="polite">{feedback}</div>
 
       {rollLog.length > 0 && (
         <div className="roll-history" aria-label="Recent rolls">
@@ -88,17 +118,14 @@ export default function ControllerPanel({ gameState, dispatch }) {
           ↩ {isFinished ? 'Undo Winning Roll' : 'Undo'}
         </button>
         <button
-          className="action-btn reset-btn"
-          onClick={() => {
-            // A finished race has no active progress to protect. Make the
-            // controller's New Game button a single, reliable action.
-            const shouldReset = isFinished || window.confirm('Reset the race? All progress will be lost.');
-            if (shouldReset) {
-              dispatch('RESET');
-            }
-          }}
+          className={`action-btn reset-btn ${resetArmed ? 'reset-armed' : ''}`}
+          onPointerDown={armReset}
+          onPointerUp={cancelReset}
+          onPointerLeave={cancelReset}
+          onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) armReset(); }}
+          onKeyUp={cancelReset}
         >
-          ↺ {isFinished ? 'New Game' : 'Reset'}
+          ↺ {isFinished ? 'New Game' : resetArmed ? 'Keep holding…' : 'Hold to Reset'}
         </button>
       </div>
 
@@ -109,3 +136,4 @@ export default function ControllerPanel({ gameState, dispatch }) {
     </div>
   );
 }
+

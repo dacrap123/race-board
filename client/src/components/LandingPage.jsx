@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -11,9 +12,10 @@ function generateCode() {
 }
 
 export default function LandingPage({ onJoin, onStats }) {
-  const [step, setStep] = useState('pick');   // 'pick' | 'display' | 'controller' | 'single'
+  const sharedCode = new URLSearchParams(window.location.search).get('join')?.toUpperCase().slice(0, 4) || '';
+  const [step, setStep] = useState(sharedCode ? 'controller' : 'pick');
   const [sessionCode] = useState(generateCode);
-  const [inputCode, setInputCode] = useState('');
+  const [inputCode, setInputCode] = useState(sharedCode);
   const [joinError, setJoinError] = useState('');
   const [joining, setJoining] = useState(false);
   const [shareStatus, setShareStatus] = useState('');
@@ -29,9 +31,11 @@ export default function LandingPage({ onJoin, onStats }) {
   async function shareCode() {
     if (!navigator.share) return copyCode();
     try {
-      await navigator.share({ title: 'Race Board session', text: `Join my Race Board session: ${sessionCode}` });
+      await navigator.share({ title: 'Race Board session', text: `Join my Race Board session: ${sessionCode}`, url: joinUrl });
     } catch (_) {}
   }
+
+  const joinUrl = `${window.location.origin}${window.location.pathname}?join=${sessionCode}`;
 
   function handlePick(mode) {
     setStep(mode);
@@ -107,6 +111,10 @@ export default function LandingPage({ onJoin, onStats }) {
           <div className="landing-section">
             <p className="landing-hint">Share this code with your controller devices:</p>
             <div className="session-code-display">{sessionCode}</div>
+            <div className="join-qr" aria-label={`QR code to join session ${sessionCode}`}>
+              <QRCodeSVG value={joinUrl} size={148} bgColor="#151b2d" fgColor="#f8fafc" level="M" includeMargin />
+              <span>Scan to join on a phone</span>
+            </div>
             <div className="session-code-actions">
               <button className="secondary-btn" onClick={copyCode}>⧉ Copy Code</button>
               <button className="secondary-btn" onClick={shareCode}>↗ Share</button>
@@ -146,3 +154,4 @@ export default function LandingPage({ onJoin, onStats }) {
     </div>
   );
 }
+

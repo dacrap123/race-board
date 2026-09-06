@@ -5,7 +5,7 @@ import { initAudio, playStart } from '../sounds';
 
 const BET_PRESETS = [0.25, 0.50, 1, 2, 5, 10];
 
-export default function SetupPanel({ gameState, dispatch, playStartCue = false }) {
+export default function SetupPanel({ gameState, dispatch, playStartCue = false, singleDevice = false }) {
   const { baseBet, scratchedHorses } = gameState;
   const [countdown, setCountdown] = useState(null);
 
@@ -36,6 +36,11 @@ export default function SetupPanel({ gameState, dispatch, playStartCue = false }
   return (
     <div className="setup-panel">
       <h2 className="setup-title">Race Setup</h2>
+      <ol className="setup-steps" aria-label="Setup progress">
+        <li className="complete"><span>1</span> Set bet</li>
+        <li className={scratchedHorses.length === 4 ? 'complete' : 'current'}><span>2</span> Scratch 4</li>
+        <li className={scratchedHorses.length === 4 ? 'current' : ''}><span>3</span> Start race</li>
+      </ol>
 
       {/* Base Bet */}
       <section className="setup-section">
@@ -136,6 +141,8 @@ export default function SetupPanel({ gameState, dispatch, playStartCue = false }
             ? '🏁 Start Race'
             : `Scratch ${4 - scratchedHorses.length} more horse${scratchedHorses.length === 3 ? '' : 's'} to start`}
       </button>
+      {singleDevice && <span className="setup-device-hint">The board and controls are on this screen.</span>}
     </div>
   );
 }
+
